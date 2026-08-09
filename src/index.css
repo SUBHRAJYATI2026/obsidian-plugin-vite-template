@@ -1,0 +1,63 @@
+@import "tailwindcss";
+
+@source "../src/**/*.{ts,tsx}";
+
+#my-plugin-root input:focus,
+#my-plugin-root input:focus-visible {
+  outline: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* FAB glow animation */
+@keyframes fab-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 8px 2px rgba(56, 123, 248, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 10px 4px rgba(56, 136, 248, 0.603);
+  }
+}
+
+@utility fab-glow {
+  animation: fab-glow 2s ease-in-out infinite;
+}
+
+@keyframes bubble-up {
+  0% {
+    opacity: 0;
+    transform: scale(0.8) translateY(16px);
+  }
+  60% {
+    transform: scale(1.05) translateY(-4px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@utility bubble-up {
+  animation: bubble-up 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  transform-origin: bottom right;
+}
+
+@keyframes bubble-down {
+  0% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  40% {
+    transform: scale(1.05) translateY(-4px);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.8) translateY(16px);
+  }
+}
+
+@utility bubble-down {
+  animation: bubble-down 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  transform-origin: bottom right;
+}

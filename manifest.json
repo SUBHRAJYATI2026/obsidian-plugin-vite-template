@@ -1,0 +1,10 @@
+{
+  "id": "obsidian-ai",
+  "name": "Obsidian AI",
+  "version": "1.0.0",
+  "minAppVersion": "0.15.0",
+  "description": "AI assistant plugin for Obsidian",
+  "author": "Your Name",
+  "authorUrl": "https://github.com/yourusername",
+  "isDesktopOnly": true
+}
