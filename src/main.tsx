@@ -1,8 +1,8 @@
-import { Plugin } from "obsidian";
+import { Notice, Plugin } from "obsidian";
 import { createRoot } from "react-dom/client";
 import type { Root } from "react-dom/client";
 import { StrictMode } from "react";
-import React from "react";
+import _React from "react";
 import FloatingWidget from "./FloatingWidget";
 import "./index.css";
 
@@ -12,6 +12,10 @@ export default class AIPlugin extends Plugin {
 
   async onload() {
     // Create a div and append to document.body
+    this.addRibbonIcon("bot", "Obsidian Agent", (_evn: MouseEvent) => {
+      new Notice("This is a notice");
+    });
+
     this.container = document.createElement("div");
     this.container.id = "my-plugin-root";
     document.body.appendChild(this.container);
