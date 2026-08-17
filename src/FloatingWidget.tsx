@@ -3,8 +3,7 @@ import {
   Cancel02FreeIcons,
   ChatBotFreeIcons,
 } from "@hugeicons/core-free-icons";
-import React from "react";
-import { useState } from "react";
+import React, { useState } from "react";
 import type { IconSvgElement } from "@hugeicons/react";
 import { requestUrl } from "obsidian";
 import Markdown from "react-markdown";
@@ -14,31 +13,34 @@ interface GenerateResponse {
   response: string;
 }
 
-export default function FloatingWidget() {
-  const [isOpen, setIsOpen] = useState(false);
+interface FloatingWidgetProps {
+  isOpen: boolean;
+  onToggle: () => void;
+}
+
+export default function FloatingWidget({
+  isOpen: externalIsOpen,
+  onToggle,
+}: FloatingWidgetProps) {
   const [isClosing, setIsClosing] = useState(false);
   const [prompt, setPrompt] = useState("");
   const [response, setResponse] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   const currentFabIcon: IconSvgElement = (
-    isOpen && !isClosing ? Cancel02FreeIcons : ChatBotFreeIcons
+    externalIsOpen && !isClosing ? Cancel02FreeIcons : ChatBotFreeIcons
   ) as IconSvgElement;
 
   const handleClose = () => {
     setIsClosing(true);
     setTimeout(() => {
-      setIsOpen(false);
+      onToggle();
       setIsClosing(false);
     }, 300); // match bubble-down duration
   };
 
   const handleToggle = () => {
-    if (isOpen) {
-      handleClose();
-    } else {
-      setIsOpen(true);
-    }
+    onToggle();
   };
 
   const handleSend = async () => {
@@ -72,7 +74,7 @@ export default function FloatingWidget() {
   return (
     <div className="fixed bottom-7 right-7 z-50 flex flex-col items-end gap-3">
       {/* Popup */}
-      {isOpen && (
+      {externalIsOpen && (
         <div
           className={`${isClosing ? "bubble-down" : "bubble-up"} flex h-96 w-80 flex-col rounded-3xl border border-white/10 bg-neutral-800 shadow-none`}
         >
@@ -126,12 +128,12 @@ export default function FloatingWidget() {
       )}
 
       {/* FAB Button */}
-      <button
+      {/* <button
         onClick={handleToggle}
         className="fab-glow w-12! h-12! rounded-full! flex items-center justify-center text-xl shadow-lg transition-colors"
       >
         <HugeiconsIcon icon={currentFabIcon} color="#547ea2" size={32} />
-      </button>
+      </button> */}
     </div>
   );
 }
