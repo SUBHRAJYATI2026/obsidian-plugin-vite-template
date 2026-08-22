@@ -13,7 +13,10 @@ dist-ssr
 *.local
 .obsidian
 .vscode
-
+.venv
+__pycache__
+.env
+.editorconfig
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

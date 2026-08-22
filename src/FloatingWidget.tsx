@@ -9,8 +9,12 @@ import { requestUrl } from "obsidian";
 import Markdown from "react-markdown";
 
 interface GenerateResponse {
-  prompt: string;
+  query: string;
   response: string;
+}
+
+interface MessageType { // for type hinting
+  query: string;
 }
 
 interface FloatingWidgetProps {
@@ -51,9 +55,12 @@ export default function FloatingWidget({
     setPrompt("");
 
     try {
+      const body: MessageType = { query: prompt };
       const res = await requestUrl({
-        url: `http://127.0.0.1:8000/generate?request=${encodeURIComponent(prompt)}`,
-        method: "POST",
+        url: "http://127.0.0.1:8000/testing",
+        method: "GET",
+        contentType: "application/json",
+        body: JSON.stringify(body),
       });
       const data = res.json as GenerateResponse;
       setResponse(data.response);
