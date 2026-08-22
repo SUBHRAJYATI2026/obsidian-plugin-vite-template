@@ -3,7 +3,7 @@ import {
   Cancel02FreeIcons,
   ChatBotFreeIcons,
 } from "@hugeicons/core-free-icons";
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import type { IconSvgElement } from "@hugeicons/react";
 import { requestUrl } from "obsidian";
 import Markdown from "react-markdown";
@@ -13,8 +13,14 @@ interface GenerateResponse {
   response: string;
 }
 
-interface MessageType { // for type hinting
+interface MessageType {
+  // for type hinting
   query: string;
+}
+
+interface ChatMessage {
+  role: "user" | "ai";
+  content: string;
 }
 
 interface FloatingWidgetProps {
@@ -28,12 +34,18 @@ export default function FloatingWidget({
 }: FloatingWidgetProps) {
   const [isClosing, setIsClosing] = useState(false);
   const [prompt, setPrompt] = useState("");
-  const [response, setResponse] = useState("");
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const currentFabIcon: IconSvgElement = (
     externalIsOpen && !isClosing ? Cancel02FreeIcons : ChatBotFreeIcons
   ) as IconSvgElement;
+
+  // Auto-scroll to the bottom when messages change or loading state changes
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, isLoading]);
 
   const handleClose = () => {
     setIsClosing(true);
@@ -49,13 +61,13 @@ export default function FloatingWidget({
 
   const handleSend = async () => {
     if (!prompt.trim()) return;
-
+    const userMessage = prompt.trim();
     setIsLoading(true);
-    setResponse("");
+    setMessages((prev) => [...prev, { role: "user", content: userMessage }]);
     setPrompt("");
 
     try {
-      const body: MessageType = { query: prompt };
+      const body: MessageType = { query: userMessage };
       const res = await requestUrl({
         url: "http://127.0.0.1:8000/testing",
         method: "GET",
@@ -63,12 +75,16 @@ export default function FloatingWidget({
         body: JSON.stringify(body),
       });
       const data = res.json as GenerateResponse;
-      setResponse(data.response);
+      setMessages((prev) => [...prev, { role: "ai", content: data.response }]);
     } catch (err) {
       console.error(err);
-      setResponse(
-        `Error: Could not connect to backend. ${(err as Error).message}`,
-      );
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "ai",
+          content: `Error: Could not connect to backend. ${(err as Error).message}`,
+        },
+      ]);
     } finally {
       setIsLoading(false);
     }
@@ -96,18 +112,51 @@ export default function FloatingWidget({
           </div>
 
           {/* Messages area */}
-          <div className="flex-1 overflow-y-auto p-4 overflow-x-hidden">
-            {response ? (
-              <div className="text-sm text-white!">
-                <Markdown>{response}</Markdown>
-              </div>
-            ) : isLoading ? (
-              <p className="text-sm text-neutral-400!">Thinking...</p>
-            ) : (
+          <div className="flex-1 overflow-y-auto p-4 overflow-x-hidden flex flex-col gap-3">
+            {messages.length === 0 && !isLoading && (
               <p className="text-sm text-neutral-400!">
                 How can I help you today?
               </p>
             )}
+
+            {messages.map((msg, idx) => (
+              <div
+                key={idx}
+                className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+              >
+                <div
+                  className={`py-2! text-sm ${
+                    msg.role === "user"
+                      ? "px-3! max-w-[75%] bg-[#302f5e] text-white! rounded-2xl rounded-br-sm"
+                      : "min-w-full bg-transparent text-white!"
+                  }`}
+                >
+                  {msg.role === "ai" ? (
+                    <Markdown>{msg.content}</Markdown>
+                  ) : (
+                    msg.content
+                  )}
+                </div>
+              </div>
+            ))}
+
+            {isLoading && (
+              <div className="flex justify-start">
+                <div className="min-w-full bg-transparent text-sm text-neutral-400!">
+                  <div className="flex gap-1">
+                    {[0, 1, 2].map((dot) => (
+                      <span
+                        key={dot}
+                        className="size-2 bg-white/30 rounded-full animate-bounce"
+                        style={{ animationDelay: `${dot * 150}ms` }}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div ref={messagesEndRef} />
           </div>
 
           {/* Input */}
