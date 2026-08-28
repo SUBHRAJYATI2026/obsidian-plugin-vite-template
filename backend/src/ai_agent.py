@@ -1,4 +1,5 @@
 import psycopg
+from sqlalchemy import create_engine, inspect
 from pydantic import SecretStr
 from langchain.agents import create_agent
 from langchain_groq import ChatGroq
@@ -34,13 +35,10 @@ pool = ConnectionPool[Connection[dict[str, Any]]](
 
 checkpointer = PostgresSaver(conn=pool)
 
-with psycopg.connect(DB_URI) as conn:
-    with conn.cursor() as cur:
-        cur.execute("""
-        SELECT table_name FROM information_schema.tables
-        WHERE table_schema='public'
-        """)
-        existing = {row[0] for row in cur.fetchall()}
+engine = create_engine(url=str(os.getenv("DB_URI_2")))
+inspector = inspect(engine)
+
+existing = {name for name in inspector.get_table_names(schema="public")}
 
 if not tables.issubset(existing):
     checkpointer.setup()
