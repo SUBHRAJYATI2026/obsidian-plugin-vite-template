@@ -1,5 +1,6 @@
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
+  ArrowUp02Icon,
   Cancel02FreeIcons,
   ChatBotFreeIcons,
 } from "@hugeicons/core-free-icons";
@@ -174,9 +175,9 @@ export default function FloatingWidget({
               <button
                 onClick={() => void handleSend()}
                 disabled={isLoading || !prompt.trim()}
-                className="rounded-[14px]! bg-[#302f5e]! px-3 py-1 text-xs font-medium text-white hover:bg-[#2b2952]! transition-colors"
+                className="rounded-2xl! bg-[#302f5e]! p-1! text-xs font-medium text-white hover:bg-[#2b2952]! transition-colors"
               >
-                {isLoading ? "..." : "Send"}
+                <HugeiconsIcon icon={ArrowUp02Icon} />
               </button>
             </div>
           </div>
