@@ -6,18 +6,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import React, { useState, useRef, useEffect } from "react";
 import type { IconSvgElement } from "@hugeicons/react";
-import { requestUrl } from "obsidian";
 import Markdown from "react-markdown";
-
-interface GenerateResponse {
-  query: string;
-  response: string;
-}
-
-interface MessageType {
-  // for type hinting
-  query: string;
-}
 
 interface ChatMessage {
   role: "user" | "ai";
@@ -68,15 +57,43 @@ export default function FloatingWidget({
     setPrompt("");
 
     try {
-      const body: MessageType = { query: userMessage };
-      const res = await requestUrl({
-        url: "http://127.0.0.1:8000/testing",
-        method: "GET",
-        contentType: "application/json",
-        body: JSON.stringify(body),
+      const res = await fetch("http://127.0.0.1:8000/testing", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query: userMessage }),
       });
-      const data = res.json as GenerateResponse;
-      setMessages((prev) => [...prev, { role: "ai", content: data.response }]);
+
+      if (!res.ok || !res.body) {
+        throw new Error(`Server responded with ${res.status}`);
+      }
+
+      // Add an empty AI message that we'll stream into
+      setMessages((prev) => [...prev, { role: "ai", content: "" }]);
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        // Hide loading dots once the first chunk arrives
+        setIsLoading(false);
+
+        const chunk = decoder.decode(value, { stream: true });
+        setMessages((prev) => {
+          const updated = [...prev];
+          const lastMsg = updated[updated.length - 1];
+          if (lastMsg && lastMsg.role === "ai") {
+            updated[updated.length - 1] = {
+              ...lastMsg,
+              content: lastMsg.content + chunk,
+            };
+          }
+          return updated;
+        });
+      }
+      setIsLoading(false);
     } catch (err) {
       console.error(err);
       setMessages((prev) => [
@@ -86,7 +103,6 @@ export default function FloatingWidget({
           content: `Error: Could not connect to backend. ${(err as Error).message}`,
         },
       ]);
-    } finally {
       setIsLoading(false);
     }
   };
@@ -141,6 +157,7 @@ export default function FloatingWidget({
               </div>
             ))}
 
+            {/* Loading Indicator */}
             {isLoading && (
               <div className="flex justify-start">
                 <div className="min-w-full bg-transparent text-sm text-neutral-400!">
